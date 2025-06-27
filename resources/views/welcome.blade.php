@@ -40,19 +40,17 @@
                     <p class="mb-2 text-[#706f6c] dark:text-[#A1A09A]">Crear un script en PHP que lea un archivo .kml con datos de sucursales y almacene las coordenadas en una base de datos MySQL, asociándolas correctamente a cada sucursal.</p>
                     <h2 class="mb-2 font-medium">Contexto:</h2>
                     <p class="mb-2 text-[#706f6c] dark:text-[#A1A09A]">El archivo KML contiene información geográfica de nuestras sucursales. <br> El script debe leer el archivo KML y almacenar las coordenadas en la base de datos.</p>
+                    <br>
                     <ul class="flex gap-3 text-sm leading-normal">
                         <li>
-<!--                             <button class="btn-personalizado" id="leerKML" onclick="leerKML();">Importar KML</button>
-                            <button class="btn-personalizado" id="mostrarTabla" onclick="mostrarTabla();">Ver registros</button>
-                            <button class="btn-personalizado hidden" id="ocultarTabla" onclick="OcultarTabla();">Ocultar registros</button>
-                            <button class="btn-personalizado" id="verMapa" onclick="mostrarMapa();">Ver en mapa</button>
-                            <button class="btn-personalizado hidden" id="ocultarMapa" onclick="ocultarMapa();">Ocultar Mapa</button> -->
-                            <button class="btn-personalizado" id="leerKML" onclick="leerKML();">Importar KML</button>
+                            <div id="archivo-info" style="margin-top: 10px; font-style: italic;"></div>
+                            <input type="file" id="input-file" accept=".kml" style="display: none;" onchange="mostrarArchivoSeleccionado()">
+                            <button class="btn-personalizado" onclick="seleccionarArchivo()">Seleccionar archivo</button>
+                            <button class="btn-personalizado" onclick="leerKML()">Importar KML</button>
                             <button class="btn-personalizado" id="btnVerRegistro" onclick="botonClick('verRegistros')">Ver registros</button>
                             <button class="btn-personalizado hidden" id="btnOcultarRegistro" onclick="botonClick('ocultarRegistros')">Ocultar registros</button>
                             <button class="btn-personalizado" id="btnVerMapa" onclick="botonClick('verMapa')">Ver en mapa</button>
                             <button class="btn-personalizado hidden" id="btnOcultarMapa" onclick="botonClick('ocultarMapa')">Ocultar mapa</button>
-
                         </li>
                     </ul>
                     <br>

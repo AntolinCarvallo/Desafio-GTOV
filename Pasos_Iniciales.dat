@@ -1,0 +1,21 @@
+Documentacion:
+1- Descargar el archivo del repositorio git
+2- Se asume que se creó la base de datos con nombre 'desafio-gtov' en MySQL con las siguientes credenciales:
+	DB_CONNECTION=mysql
+	DB_HOST=127.0.0.1
+	DB_PORT=3306
+	DB_DATABASE=desafio-gtov
+	DB_USERNAME=root
+	DB_PASSWORD=
+	* Obs: Si las credenciales son distintas, configurar el archivo .env del proyecto para realizar la conexión con la Base de Datos MySQL.
+	
+3- Abrir el proyecto 'desafio-gtov' desde VS Code
+4- Abrir la consola y ejecutar: php artisan migrate (para migrar la base de datos)
+	4.1 Se deben tener instaladas las dependencias de Composer en el caso de que no se pueda ejecutar el comando anterior
+	4.2 Si no se tiene instaldo, ejecutar: composer install -> Para instalar las dependencias
+	4.3 Copiar el archivo .env.example para configurar la conexion a la base
+		Ejecutar: copy .env.example .env
+	4.4 Generar una key de la aplicación usando: php artisan key:generate
+	4.5 Ahora si, ejecutar php artisan migrate
+5- Ejecutar: php artisan serve (para levantar el servicio)
+6- Acceder al link [http://127.0.0.1:8000] y Testear el sistema.

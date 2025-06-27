@@ -1,9 +1,34 @@
 var mapaLeaflet = null;
 
+function seleccionarArchivo() {
+    document.getElementById("input-file").click();
+}
+
+function mostrarArchivoSeleccionado() {
+    const input = document.getElementById("input-file");
+    const info = document.getElementById("archivo-info");
+
+    if (input.files.length > 0) {
+        const archivo = input.files[0];
+        info.textContent = `Archivo seleccionado: ${archivo.name}`;
+    } else {
+        info.textContent = '';
+    }
+}
+
 function leerKML() {
+    const input = document.getElementById("input-file");
+
+    if (!input.files.length) {
+        Swal.fire("Error", "Debe seleccionar un archivo KML primero.", "error");
+        return;
+    }
+
+    const archivo = input.files[0];
+
     Swal.fire({
         title: 'Atención',
-        text: '¿Desea cargar un archivo KML?',
+        text: '¿Desea cargar el archivo KML seleccionado?',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, cargar',
@@ -11,76 +36,70 @@ function leerKML() {
     }).then((result) => {
         if (!result.isConfirmed) return;
 
-        let ruta = "/data/DemoGTOV.kml";
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const kmlText = e.target.result;
 
-        fetch(ruta)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Archivo no encontrado: ${response.status}`);
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(kmlText, "application/xml");
+            const placemarks = xmlDoc.getElementsByTagName("Placemark");
+
+            const sucursales = [];
+
+            for (let i = 0; i < placemarks.length; i++) {
+                const placemark = placemarks[i];
+
+                const nombre = placemark.getElementsByTagName("name")[0]?.textContent ?? "(sin nombre)";
+                const descripcion = placemark.getElementsByTagName("description")[0]?.textContent ?? "";
+                const coordsNodes = placemark.getElementsByTagName("coordinates");
+
+                const raw_coordinates = [];
+
+                for (let j = 0; j < coordsNodes.length; j++) {
+                    const coordsRaw = coordsNodes[j].textContent.trim();
+
+                    const puntos = coordsRaw.split(/\s+/).filter(c => c.includes(',')).map(c => {
+                        const [lon, lat] = c.trim().split(',').map(Number);
+                        return { latitude: lat, longitude: lon };
+                    });
+
+                    raw_coordinates.push(...puntos);
                 }
-                return response.text();
+
+                if (raw_coordinates.length > 0) {
+                    sucursales.push({
+                        sucursal: nombre,
+                        descripcion: descripcion,
+                        raw_coordinates: raw_coordinates
+                    });
+                }
+            }
+
+            // Enviar al backend
+            fetch("/guardar-sucursales", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ sucursales })
             })
-            .then(kmlText => {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(kmlText, "application/xml");
-                const placemarks = xmlDoc.getElementsByTagName("Placemark");
-
-                const sucursales = [];
-
-                for (let i = 0; i < placemarks.length; i++) {
-                    const placemark = placemarks[i];
-
-                    const nombre = placemark.getElementsByTagName("name")[0]?.textContent ?? "(sin nombre)";
-                    const descripcion = placemark.getElementsByTagName("description")[0]?.textContent ?? "";
-                    const coordsNodes = placemark.getElementsByTagName("coordinates");
-
-                    const raw_coordinates = [];
-
-                    for (let j = 0; j < coordsNodes.length; j++) {
-                        const coordsRaw = coordsNodes[j].textContent.trim();
-
-                        const puntos = coordsRaw.split(/\s+/).filter(c => c.includes(',')).map(c => {
-                            const [lon, lat] = c.trim().split(',').map(Number);
-                            return { latitude: lat, longitude: lon };
-                        });
-
-                        raw_coordinates.push(...puntos);
-                    }
-
-                    if (raw_coordinates.length > 0) {
-                        sucursales.push({
-                            sucursal: nombre,
-                            descripcion: descripcion,
-                            raw_coordinates: raw_coordinates
-                        });
-                    }
+            .then(res => res.json())
+            .then(data => {
+                if (data.yaImportado) {
+                    Swal.fire("Advertencia", data.mensaje, "info");
+                    return;
                 }
 
-                // Enviar al backend
-                fetch("/guardar-sucursales", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({ sucursales })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.yaImportado) {
-                        Swal.fire("Advertencia", data.mensaje, "info");
-                        return;
-                    }
-
-                    Swal.fire("Éxito", data.mensaje, "success")
-                        .then(() => location.reload());
-                })
-
+                Swal.fire("Éxito", data.mensaje, "success")
+                    .then(() => location.reload());
             })
             .catch(error => {
-                //console.error("Error al leer el archivo:", error.message);
                 Swal.fire("Error", error.message, "error");
             });
+        };
+
+        reader.readAsText(archivo);
     });
 }
 
